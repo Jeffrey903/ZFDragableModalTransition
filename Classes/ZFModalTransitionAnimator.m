@@ -112,6 +112,7 @@
         CGPoint transformedPoint = CGPointApplyAffineTransform(startRect.origin, toViewController.view.transform);
         toViewController.view.frame = CGRectMake(transformedPoint.x, transformedPoint.y, startRect.size.width, startRect.size.height);
         
+        [fromViewController beginAppearanceTransition:NO animated:YES];
         [UIView animateWithDuration:[self transitionDuration:transitionContext]
                               delay:0
              usingSpringWithDamping:0.8
@@ -128,6 +129,7 @@
                              
                              
                          } completion:^(BOOL finished) {
+                             [fromViewController endAppearanceTransition];
                              [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
                              
                          }];
@@ -163,6 +165,7 @@
         CGPoint transformedPoint = CGPointApplyAffineTransform(endRect.origin, fromViewController.view.transform);
         endRect = CGRectMake(transformedPoint.x, transformedPoint.y, endRect.size.width, endRect.size.height);
         
+        [toViewController beginAppearanceTransition:YES animated:YES];
         [UIView animateWithDuration:[self transitionDuration:transitionContext]
                               delay:0
              usingSpringWithDamping:0.8
@@ -174,6 +177,7 @@
                              toViewController.view.alpha = 1.0f;
                              fromViewController.view.frame = endRect;
                          } completion:^(BOOL finished) {
+                             [toViewController endAppearanceTransition];
                              [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
                              
                          }];
@@ -249,6 +253,8 @@
         toViewController.view.layer.transform = CATransform3DScale(toViewController.view.layer.transform, self.behindViewScale, self.behindViewScale, 1);
     }
     
+    [toViewController beginAppearanceTransition:YES animated:YES];
+
     self.tempTransform = toViewController.view.layer.transform;
     
     toViewController.view.alpha = self.behindViewAlpha;
@@ -345,6 +351,7 @@
                          toViewController.view.alpha = 1.0f;
                          fromViewController.view.frame = endRect;
                      } completion:^(BOOL finished) {
+                         [toViewController endAppearanceTransition];
                          [transitionContext completeTransition:YES];
                          self.modalController = nil;
                      }];
@@ -374,6 +381,11 @@
                          
                          
                      } completion:^(BOOL finished) {
+                         // Ideally we wouldn't call endAppearanceTransition, since we want viewWillAppear to be called but not viewDidAppear, but the framework wants the calls to be balanced. Since there isn't a cancelAppearanceTransition call, do this instead.
+                         [toViewController endAppearanceTransition];
+                         [toViewController beginAppearanceTransition:NO animated:YES];
+                         [toViewController endAppearanceTransition];
+
                          [transitionContext completeTransition:NO];
                      }];
 }
